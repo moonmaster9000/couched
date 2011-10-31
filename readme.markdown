@@ -69,6 +69,25 @@ You can create a database via the `database!` method. If the database does not y
 article_database = Couched.new.database! "articles"
 ```
 
+## Creating / Updating / Deleting Design Documents
+
+To create or update a design document, use the `design!` method on a database instance:
+
+```ruby
+db = Couched.new.database! "articles"
+
+# create a design document "\_design/articles" with a "by\_title" view:
+db.design!(
+  "articles",
+  "views" => {
+    "by_title" => {
+      "map" => "function(doc){ emit(doc.title, null); }",
+      "reduce" => "_count"
+    }
+  }
+)
+```
+
 ## K/V document access
 
 A database object will act like a collection of documents, letting you easily add documents to the database via the `post` method, and remove documents from the database via the `delete` method. You can update documents via the `put` method. And lastly, you can retrieve documents via the `get` method.
@@ -171,3 +190,36 @@ doc = db["couched-simple-couchdb-api"]
 ```
 
 Next, let's imagine that we want to update our article by changing the "author" property. 
+
+
+### Querying
+
+You can query views defined in a design document using the `design` and `view` methods on a database instance:
+
+```ruby
+# query the "by\_title" view in the \_design/articles design document
+db.design("articles").view("by_title").query
+```
+
+You can pass options to the query via a hash:
+
+```ruby
+db.design("articles").view("by_title").query :startkey => "z", :endkey => "a", :descending => "true"
+```
+
+You'll receieve the JSON response as a hash:
+
+```ruby
+db.design("articles").view("by_title").query :startkey => "z", :endkey => "a", :descending => "true"
+#==> 
+  {
+    "rows" => [
+      { "key" => "Zebra Escapes From the Zoo!", "value" => null, "_id" => "893208190328190382109312" },
+      #....
+    ]
+  }
+```
+
+### Show
+
+### List
